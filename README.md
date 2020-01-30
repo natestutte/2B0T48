@@ -7,5 +7,5 @@ To install required python libraries:
 ```
 python3 -m pip install -r requirements.txt
 ```
-**Make sure Python3 is installed and PIP3 is updated**
+**Make sure Python>=3.7 is installed and PIP3 is updated**
 
