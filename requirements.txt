@@ -1,0 +1,4 @@
+PyQt5>=5.14.1
+pyautogui>=0.9.48
+Pillow>=6.1.0
+numpy>=1.18.1
