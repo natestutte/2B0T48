@@ -1,0 +1,9 @@
+TODO
+
+- Implement hidden heuristic values (biases):
+    = "Highest in Corner" DONE
+- Implement new heuristic functions:
+    = "Merging" (Higher value depending on tile value being merged)
+- Tweak mono and smth functions:
+    = Give more value/weight to higher tile values
+    = Allow smth functions to work diagonally(?)
