@@ -76,6 +76,21 @@ def _smth(board):
 
     return smoothness / len(scores)
 
+def _corner(board):
+    highest = x = y = 0
+
+    for a in range(0, 4):
+        for b in range(0, 4):
+            if board[b, a] > highest:
+                highest = board[b, a]
+                x = a
+                y = b
+
+    if x == 0 or x == 3:
+        if y == 0 or y == 3:
+            return 1.0
+    return 0.0
+
 def _simMove(board, dirinput):
     # simulates game movement and returns simulated board
     # given original board and direction inputted
@@ -165,14 +180,15 @@ def _getAvgValues(board):
     dirValues = [[], [], [], []]
 
     for a in range(4):
-        totalBoards = totalFree = totalMono = totalSmth = 0
+        totalBoards = totalFree = totalMono = totalSmth = totalCorner = 0
         if allBoards[a][0] is not None:
             for b in allBoards[a]:
                 totalBoards += 1
                 totalFree += _free(b)
                 totalMono += _mono(b)
                 totalSmth += _smth(b)
-            dirValues[a].append((totalFree / totalBoards, totalMono / totalBoards, totalSmth / totalBoards))
+                totalCorner += _corner(b)
+            dirValues[a].append((totalFree / totalBoards, totalMono / totalBoards, totalSmth / totalBoards, totalCorner / totalBoards))
         else:
             dirValues[a].append(None)
 
@@ -186,7 +202,7 @@ def findBestDir(board, w0, w1, w2):
 
     for a in range(4):
         if avgValues[a][0] is not None:
-            weights = (avgValues[a][0][0] * w0) + (avgValues[a][0][1] * w1) + (avgValues[a][0][2] * w2)
+            weights = (avgValues[a][0][0] * w0) + (avgValues[a][0][1] * w1) + (avgValues[a][0][2] * w2) + (avgValues[a][0][3])
             if tempMax < weights:
                 tempMax = weights
                 maximumDirection = a
