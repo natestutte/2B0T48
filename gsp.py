@@ -76,6 +76,21 @@ def _smth(board):
 
     return smoothness / len(scores)
 
+def _corner(board):
+    highest = x = y = 0
+
+    for a in range(0, 4):
+        for b in range(0, 4):
+            if board[b, a] > highest:
+                highest = board[b, a]
+                x = a
+                y = b
+
+    if x == 0 or x == 3:
+        if y == 0 or y == 3:
+            return 1.0
+    return 0.0
+
 def _simMove(board, dirinput):
     # simulates game movement and returns simulated board
     # given original board and direction inputted
@@ -111,6 +126,8 @@ def _simMove(board, dirinput):
     for i in range(dir):
         finalboard = np.rot90(finalboard)
 
+    mergecount = 0
+
     for a in finalboard:
         marked = []
         for i in range(2, -1, -1):
@@ -119,6 +136,7 @@ def _simMove(board, dirinput):
                     if a[j] == a[i] and i not in marked:
                         a[j] *= 2
                         a[i] = 0
+                        mergecount += 1
                         marked.append(j)
                         break
                     elif a[j] != 0:
@@ -136,7 +154,7 @@ def _simMove(board, dirinput):
     if (finalboard == board).all():
         return None
     else:
-        return finalboard
+        return (finalboard, mergecount / 16)
 
 def _getPossibleBoards(board):
     # returns a 2D array of all possible boards, separated by input direction
@@ -145,8 +163,10 @@ def _getPossibleBoards(board):
     tempBoard = None
 
     for a in range(4):
-        tempBoard = _simMove(board, a)
-        if tempBoard is not None:
+
+        if _simMove(board, a) is not None:
+            tempBoard, mergecount = _simMove(board, a)
+            allBoards[a].append(mergecount)
             for y in range(4):
                 for x in range(4):
                     if tempBoard[y, x] == 0:
@@ -165,14 +185,17 @@ def _getAvgValues(board):
     dirValues = [[], [], [], []]
 
     for a in range(4):
-        totalBoards = totalFree = totalMono = totalSmth = 0
+        totalBoards = totalFree = totalMono = totalSmth = totalCorner = 0
         if allBoards[a][0] is not None:
+            mergecount = allBoards[a][0]
             for b in allBoards[a]:
-                totalBoards += 1
-                totalFree += _free(b)
-                totalMono += _mono(b)
-                totalSmth += _smth(b)
-            dirValues[a].append((totalFree / totalBoards, totalMono / totalBoards, totalSmth / totalBoards))
+                if not isinstance(b, float):
+                    totalBoards += 1
+                    totalFree += _free(b)
+                    totalMono += _mono(b)
+                    totalSmth += _smth(b)
+                    totalCorner += _corner(b)
+            dirValues[a].append((totalFree / totalBoards, totalMono / totalBoards, totalSmth / totalBoards, mergecount, totalCorner / totalBoards))
         else:
             dirValues[a].append(None)
 
@@ -186,7 +209,7 @@ def findBestDir(board, w0, w1, w2):
 
     for a in range(4):
         if avgValues[a][0] is not None:
-            weights = (avgValues[a][0][0] * w0) + (avgValues[a][0][1] * w1) + (avgValues[a][0][2] * w2)
+            weights = (avgValues[a][0][0] * w0) + (avgValues[a][0][1] * w1) + (avgValues[a][0][2] * w2) + (avgValues[a][0][3]) + (avgValues[a][0][4])
             if tempMax < weights:
                 tempMax = weights
                 maximumDirection = a
